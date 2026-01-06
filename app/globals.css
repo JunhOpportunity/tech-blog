@@ -1,8 +1,19 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+pre {
+  background-color: #1e1e1e; 
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
 }
 
 @theme inline {
