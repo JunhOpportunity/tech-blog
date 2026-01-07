@@ -10,7 +10,7 @@
 }
 
 pre {
-  background-color: #1e1e1e; 
+  background-color: #1e1e1e; /* 다크 모드 배경 */
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;

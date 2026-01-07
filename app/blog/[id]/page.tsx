@@ -1,16 +1,20 @@
 // app/blog/[id]/page.tsx
-import { getBlogPosts } from '@/app/lib/blog'; // blog 전용 로더 사용
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import 'highlight.js/styles/github-dark.css';
+import { getBlogPosts } from "@/app/lib/blog"; // blog 전용 로더 사용
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
   return posts.map((post) => ({ id: post.id }));
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const decodedId = decodeURIComponent(id);
   const posts = getBlogPosts();
@@ -26,24 +30,30 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
           {post.category}
         </span>
         <h1 className="text-5xl font-black mt-4 mb-6">{post.title}</h1>
-        
+
         {/* 요약문이 있다면 출력 */}
         {post.description && (
-          <p className="text-xl text-gray-600 mb-6 italic">"{post.description}"</p>
+          <p className="text-xl text-gray-600 mb-6 italic">
+            "{post.description}"
+          </p>
         )}
-        
+
         <div className="text-gray-400 text-sm">
-          {new Date(post.date).toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })} 작성
+          {new Date(post.date).toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+          작성
         </div>
       </header>
 
       {/* 마크다운 본문 */}
-      <div className="prose prose-slate lg:prose-xl max-w-none">
-        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+      <div className="prose prose-slate dark:prose-invert max-w-none">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
+        >
           {post.content}
         </ReactMarkdown>
       </div>

@@ -45,7 +45,7 @@ export default async function PostPage({
         </p>
       </header>
 
-      <div className="prose prose-slate lg:prose-xl max-w-none dark:prose-invert">
+      <div className="prose prose-slate dark:prose-invert max-w-none">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeHighlight]}
