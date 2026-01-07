@@ -39,15 +39,24 @@ export default function ArchivePage() {
               key={name}
               className="relative border rounded-xl p-6 bg-white hover:border-blue-500 transition-all shadow-sm flex flex-col h-full group"
             >
-              {/* 학습 중🔥 태그 (우측 상단) */}
-              {isLearning && (
-                <span className="absolute -top-3 right-4 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md animate-bounce">
-                  학습 중 🔥
-                </span>
-              )}
+              <div className="flex items-start justify-between gap-4">
+                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">
+                  {name}
+                </h2>
+
+                {/* 학습 중일 때만 주황색 태그 노출 (없으면 공간을 차지하지 않음) */}
+                {isLearning && (
+                  <span className="shrink-0 inline-flex items-center gap-1.5 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md uppercase tracking-wider border border-orange-100 mt-1">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                    </span>
+                    기록중 🔥
+                  </span>
+                )}
+              </div>
 
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-slate-800">{name}</h2>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   {/* 기간 날짜 표시 */}
                   <div className="inline-flex items-center text-[11px] font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">
