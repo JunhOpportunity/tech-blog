@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { getBlogPosts } from "./blog";
+import { getGithubCommits } from "./github";
 
 const postsDirectory = path.join(process.cwd(), "content/raw-github");
 
@@ -133,4 +135,56 @@ export function getSortedPostsData(): PostData[] {
 
   // 날짜 기준 최신순 정렬
   return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export function getCombinedHeatmapData() {
+  const allArchive = getSortedPostsData();
+  const allBlog = getBlogPosts();
+
+  // 데이터 통합 및 유형 분류
+  const dataMap: Record<string, { date: string; archiveCount: number; blogCount: number }> = {};
+
+  // 아카이브 날짜 처리
+  allArchive.forEach((post) => {
+    const date = post.date.split('T')[0];
+    if (!dataMap[date]) dataMap[date] = { date, archiveCount: 0, blogCount: 0 };
+    dataMap[date].archiveCount += 1;
+  });
+
+  // 블로그 날짜 처리
+  allBlog.forEach((post) => {
+    const date = post.date.split('T')[0];
+    if (!dataMap[date]) dataMap[date] = { date, archiveCount: 0, blogCount: 0 };
+    dataMap[date].blogCount += 1;
+  });
+
+  return Object.values(dataMap);
+}
+
+export async function getFinalHeatmapData() {
+  const archivePosts = getSortedPostsData();
+  const blogPosts = getBlogPosts();
+  const githubCommits = await getGithubCommits(); // GraphQL 호출 함수
+
+  const dataMap: Record<string, { date: string; type: 'blog' | 'commit' | 'archive' | 'empty'; count: number }> = {};
+
+  // 우선순위가 낮은 순서부터 데이터를 덮어씌웁니다.
+  // 1. Commit (초록)
+  Object.entries(githubCommits).forEach(([date, count]) => {
+    dataMap[date] = { date, count: count as number, type: 'commit' };
+  });
+
+  // 2. Archive Upload (노랑) - 커밋보다 아카이브 기록을 우선시할 경우
+  archivePosts.forEach(p => {
+    const date = p.date.split('T')[0];
+    dataMap[date] = { date, count: (dataMap[date]?.count || 0) + 1, type: 'archive' };
+  });
+
+  // 3. Blog Post (파랑) - 가장 높은 우선순위 (이 날 글을 썼다면 무조건 파란색)
+  blogPosts.forEach(p => {
+    const date = p.date.split('T')[0];
+    dataMap[date] = { date, count: (dataMap[date]?.count || 0) + 1, type: 'blog' };
+  });
+
+  return Object.values(dataMap);
 }
