@@ -74,7 +74,7 @@ export default function HomePage() {
               href="/blog"
               className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
             >
-              View All
+              전체보기
             </Link>
           </div>
 
@@ -91,8 +91,9 @@ export default function HomePage() {
                       {post.category}
                     </span>
                     <time className="text-xs text-slate-400">
-                      {new Date(post.date).toLocaleDateString("en-US", {
-                        month: "short",
+                      {new Date(post.date).toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
                         day: "numeric",
                       })}
                     </time>
@@ -119,7 +120,7 @@ export default function HomePage() {
               href="/archive"
               className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
             >
-              Explore
+              전체보기
             </Link>
           </div>
 
