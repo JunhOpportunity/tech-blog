@@ -13,6 +13,7 @@ export interface PostData {
   created_at: string;
   category: string;
   content: string;
+  isLearning?: boolean;
 }
 
 export function getPostDataWithNav(id: string) {
