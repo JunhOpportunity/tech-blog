@@ -1,9 +1,10 @@
-// app/blog/[id]/page.tsx
-import { getBlogPosts } from "@/app/lib/blog"; // blog 전용 로더 사용
+import { getBlogPosts } from "@/app/lib/blog"; 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
+import TableOfContents from "@/components/TableOfContents";
+import rehypeSlug from "rehype-slug";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -23,40 +24,41 @@ export default async function BlogPostPage({
   if (!post) return <div>포스트를 찾을 수 없습니다.</div>;
 
   return (
-    <article className="max-w-4xl mx-auto p-8">
-      <header className="mb-12 text-center">
-        {/* 블로그는 카테고리를 좀 더 강조하는 편입니다 */}
-        <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
-          {post.category}
-        </span>
-        <h1 className="text-5xl font-black mt-4 mb-6">{post.title}</h1>
-
-        {/* 요약문이 있다면 출력 */}
-        {post.description && (
-          <p className="text-xl text-gray-600 mb-6 italic">
-            "{post.description}"
-          </p>
-        )}
-
-        <div className="text-gray-400 text-sm">
-          {new Date(post.date).toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
+    <div className="relative max-w-7xl mx-auto px-4 md:px-8">
+    
+    {/* 2. 본문 영역: mx-auto로 중앙 고정 */}
+    <article className="max-w-3xl mx-auto py-8 lg:py-12 min-w-0">
+      <header className="mb-10 text-center">
+        <h1 className="text-4xl font-extrabold mb-4 text-slate-900 dark:text-white leading-tight">
+          {post.title}
+        </h1>
+        <p className="text-gray-500 font-medium">
+          {new Date(post.date).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
           })}
-          작성
-        </div>
+        </p>
       </header>
 
-      {/* 마크다운 본문 */}
       <div className="prose prose-slate dark:prose-invert max-w-none">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHighlight]}
+          rehypePlugins={[rehypeHighlight, rehypeSlug]}
         >
           {post.content}
         </ReactMarkdown>
       </div>
     </article>
+
+    {/* 3. 목차 영역 수정본 */}
+    {/* inset-y-0을 추가하여 부모(전체 컨테이너)의 높이만큼 aside가 늘어나게 합니다. */}
+    <aside className="hidden xl:block absolute inset-y-0 left-[calc(50%+24rem)] w-64">
+      <div className="sticky top-24 pt-12"> {/* pt-12로 본문 시작점과 높이를 맞춤 */}
+        <TableOfContents content={post.content} />
+      </div>
+    </aside>
+  </div>
   );
 }
+

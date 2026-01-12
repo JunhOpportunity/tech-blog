@@ -15,7 +15,27 @@ export interface PostData {
   content: string;
 }
 
-// lib/posts.ts
+export function getPostDataWithNav(id: string) {
+  const allPosts = getSortedPostsData(); // 이미 정의하신 최신순 정렬 함수 활용
+  const postIndex = allPosts.findIndex((p) => p.id === id);
+
+  if (postIndex === -1) return null;
+
+  const post = allPosts[postIndex];
+  
+  // 이전 글: 배열에서는 인덱스가 더 큰 쪽이 과거 글 (정렬 기준에 따라 다름)
+  // 현재 최신순 정렬이므로 postIndex + 1이 이전(과거) 글입니다.
+  const prevPost = postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
+  
+  // 다음 글: postIndex - 1이 다음(최신) 글입니다.
+  const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
+
+  return {
+    post,
+    prevPost: prevPost ? { id: prevPost.id, title: prevPost.title } : null,
+    nextPost: nextPost ? { id: nextPost.id, title: nextPost.title } : null,
+  };
+}
 
 export function getPostsByCategory() {
   const allPosts = getSortedPostsData();
