@@ -18,12 +18,13 @@ export async function generateStaticParams() {
 export default async function ArchivePostPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
-  const { id } = await params;
-  const decodedId = decodeURIComponent(id);
+  const { slug } = await params;
 
-  // 내비게이션 데이터(이전/다음 글)를 포함하여 가져옵니다.
+  // slug는 ['코딩테스트', '4주차'] 배열로 들어옵니다. 이를 "코딩테스트/4주차"로 합칩니다.
+  const decodedId = slug.map((part) => decodeURIComponent(part)).join("/");
+
   const data = getPostDataWithNav(decodedId);
 
   if (!data) {
