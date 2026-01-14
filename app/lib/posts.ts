@@ -4,7 +4,7 @@ import matter from "gray-matter";
 import { getBlogPosts } from "./blog";
 import { getGithubCommits } from "./github";
 
-const postsDirectory = path.join(process.cwd(), "content/raw-github");
+const postsDirectory = path.join(process.cwd(), "content/archive");
 
 export interface PostData {
   id: string;
@@ -16,19 +16,73 @@ export interface PostData {
   isLearning?: boolean;
 }
 
+// 1. 이미지를 중앙 리포지토리(knowledge-database)의 Raw URL로 변환
+function fixImagePaths(content: string, category: string, fileName: string) {
+  const owner = "JunhOpportunity";
+  const repo = "knowledge-database"; // 중앙 리포지토리 이름 고정
+  // 중앙 리포지토리 구조가 content/archive/카테고리/파일.md 이므로 경로 설정
+  const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/content/archive/${category}`;
+
+  return content.replace(
+    /!\[(.*?)\]\((?!http)(.*?)\)/g,
+    (match, alt, imgPath) => {
+      const cleanImgPath = imgPath.startsWith("./") ? imgPath.substring(2) : imgPath;
+      return `![${alt}](${baseUrl}/${cleanImgPath})`;
+    }
+  );
+}
+
+export function getSortedPostsData(): PostData[] {
+  if (!fs.existsSync(postsDirectory)) return [];
+
+  // 카테고리 폴더 리스트를 가져옵니다 (예: ['코딩테스트', 'React', ...])
+  const categories = fs.readdirSync(postsDirectory);
+  let allPostsData: PostData[] = [];
+
+  categories.forEach((category) => {
+    const categoryPath = path.join(postsDirectory, category);
+    
+    // 디렉토리인 경우에만 내부 md 파일들을 읽습니다.
+    if (fs.statSync(categoryPath).isDirectory()) {
+      const fileNames = fs.readdirSync(categoryPath);
+      
+      fileNames.forEach((fileName) => {
+        if (fileName.endsWith(".md")) {
+          const id = `${category}/${fileName.replace(/\.md$/, "")}`;
+          const fullPath = path.join(categoryPath, fileName);
+          const fileContents = fs.readFileSync(fullPath, "utf8");
+
+          const { data, content } = matter(fileContents);
+
+          // 이미지 경로 수정 로직 적용
+          const fixedContent = fixImagePaths(content, category, fileName);
+
+          allPostsData.push({
+            id,
+            title: data.title || fileName.replace(/\.md$/, ""),
+            date: data.date || "",
+            created_at: data.created_at || data.date || "",
+            category: category, // 폴더명을 카테고리로 사용
+            content: fixedContent,
+          } as PostData);
+        }
+      });
+    }
+  });
+
+  return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+// --- 아래 함수들은 기존 로직을 유지하면서 위에서 바뀐 getSortedPostsData를 호출하여 정상 작동합니다 ---
+
 export function getPostDataWithNav(id: string) {
-  const allPosts = getSortedPostsData(); // 이미 정의하신 최신순 정렬 함수 활용
+  const allPosts = getSortedPostsData();
   const postIndex = allPosts.findIndex((p) => p.id === id);
 
   if (postIndex === -1) return null;
 
   const post = allPosts[postIndex];
-  
-  // 이전 글: 배열에서는 인덱스가 더 큰 쪽이 과거 글 (정렬 기준에 따라 다름)
-  // 현재 최신순 정렬이므로 postIndex + 1이 이전(과거) 글입니다.
   const prevPost = postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
-  
-  // 다음 글: postIndex - 1이 다음(최신) 글입니다.
   const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
 
   return {
@@ -40,20 +94,14 @@ export function getPostDataWithNav(id: string) {
 
 export function getPostsByCategory() {
   const allPosts = getSortedPostsData();
-  const categories: Record<string, { 
-    posts: typeof allPosts, 
-    startDate: string, 
-    endDate: string,
-    durationMonths: number, // 학습 기간(개월) 추가
-    isLearning: boolean     // 학습 중 여부 추가
-  }> = {};
+  const categories: Record<string, any> = {};
 
   allPosts.forEach((post) => {
     const category = post.category || 'General';
     if (!categories[category]) {
       categories[category] = {
         posts: [],
-        startDate: post.created_at || post.date,
+        startDate: post.date,
         endDate: post.date,
         durationMonths: 0,
         isLearning: false
@@ -62,19 +110,14 @@ export function getPostsByCategory() {
 
     categories[category].posts.push(post);
 
-    // 날짜 업데이트 로직 (생략 - 이전과 동일)
-    const postDate = new Date(post.date);
-    const postCreatedAt = new Date(post.created_at || post.date);
-    
-    if (postCreatedAt < new Date(categories[category].startDate)) {
-      categories[category].startDate = post.created_at || post.date;
+    if (new Date(post.date) < new Date(categories[category].startDate)) {
+      categories[category].startDate = post.date;
     }
-    if (postDate > new Date(categories[category].endDate)) {
+    if (new Date(post.date) > new Date(categories[category].endDate)) {
       categories[category].endDate = post.date;
     }
   });
 
-  // 기간 계산 및 학습 중 상태 판별
   const now = new Date();
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -82,97 +125,26 @@ export function getPostsByCategory() {
     const cat = categories[name];
     const start = new Date(cat.startDate);
     const end = new Date(cat.endDate);
-
-    // 1. 개월 수 계산
     const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-    cat.durationMonths = months <= 0 ? 1 : months + 1; // 최소 1개월로 표시
-
-    // 2. 최근 일주일 이내 기록이 있다면 '학습 중'
+    cat.durationMonths = months <= 0 ? 1 : months + 1;
     cat.isLearning = end >= oneWeekAgo;
   });
 
   return categories;
 }
-// 1. 이미지를 GitHub Raw URL로 바꾸는 유틸리티 함수
-function fixImagePaths(
-  content: string,
-  owner: string,
-  repo: string,
-  path: string
-) {
-  // 현재 파일이 들어있는 폴더 경로 추출
-  const directory = path.split("/").slice(0, -1).join("/");
-  const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${directory}`;
 
-  // 마크다운 이미지 문법 ![alt](path) 찾기 (상대 경로인 경우만)
-  return content.replace(
-    /!\[(.*?)\]\((?!http)(.*?)\)/g,
-    (match, alt, imgPath) => {
-      // 상대 경로 앞의 ./ 제거 후 절대 경로 URL 생성
-      const cleanImgPath = imgPath.startsWith("./")
-        ? imgPath.substring(2)
-        : imgPath;
-      return `![${alt}](${baseUrl}/${cleanImgPath})`;
-    }
-  );
-}
-
-export function getSortedPostsData(): PostData[] {
-  // 폴더가 없으면 빈 배열 반환
-  if (!fs.existsSync(postsDirectory)) return [];
-
-  const fileNames = fs.readdirSync(postsDirectory);
-
-  const allPostsData = fileNames
-    .filter((fileName) => fileName.endsWith(".md"))
-    .map((fileName) => {
-      const id = fileName.replace(/\.md$/, "");
-      const fullPath = path.join(postsDirectory, fileName);
-      const fileContents = fs.readFileSync(fullPath, "utf8");
-
-      // gray-matter로 메타데이터와 본문 분리
-      const { data, content } = matter(fileContents);
-      const owner = "JunhOpportunity"; // 본인 아이디
-      const repo = id.split("_")[0]; // 파일명 규칙에 따라 추출
-
-      const fixedContent = fixImagePaths(content, owner, repo, data.path || "");
-
-      // 1. 본문에서 첫 번째 H1 (# 제목) 찾기
-      const h1Match = content.match(/^#\s+(.*)$/m);
-      const extractedTitle = h1Match ? h1Match[1].trim() : data.title || id;
-
-      // 2. 파일명에서 카테고리 추출 (파일명: 레포명_경로_README.md)
-      const category = id.split("_")[0] || "General";
-
-      return {
-        id,
-        title: extractedTitle, // 추출된 제목 사용
-        date: data.date || "",
-        created_at: data.created_at || "",
-        category,
-        content,
-      } as PostData;
-    });
-
-  // 날짜 기준 최신순 정렬
-  return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
-}
-
+// 히트맵 관련 함수들 (기존 유지)
 export function getCombinedHeatmapData() {
   const allArchive = getSortedPostsData();
   const allBlog = getBlogPosts();
+  const dataMap: Record<string, any> = {};
 
-  // 데이터 통합 및 유형 분류
-  const dataMap: Record<string, { date: string; archiveCount: number; blogCount: number }> = {};
-
-  // 아카이브 날짜 처리
   allArchive.forEach((post) => {
     const date = post.date.split('T')[0];
     if (!dataMap[date]) dataMap[date] = { date, archiveCount: 0, blogCount: 0 };
     dataMap[date].archiveCount += 1;
   });
 
-  // 블로그 날짜 처리
   allBlog.forEach((post) => {
     const date = post.date.split('T')[0];
     if (!dataMap[date]) dataMap[date] = { date, archiveCount: 0, blogCount: 0 };
@@ -185,23 +157,18 @@ export function getCombinedHeatmapData() {
 export async function getFinalHeatmapData() {
   const archivePosts = getSortedPostsData();
   const blogPosts = getBlogPosts();
-  const githubCommits = await getGithubCommits(); // GraphQL 호출 함수
+  const githubCommits = await getGithubCommits();
+  const dataMap: Record<string, any> = {};
 
-  const dataMap: Record<string, { date: string; type: 'blog' | 'commit' | 'archive' | 'empty'; count: number }> = {};
-
-  // 우선순위가 낮은 순서부터 데이터를 덮어씌웁니다.
-  // 1. Commit (초록)
   Object.entries(githubCommits).forEach(([date, count]) => {
     dataMap[date] = { date, count: count as number, type: 'commit' };
   });
 
-  // 2. Archive Upload (노랑) - 커밋보다 아카이브 기록을 우선시할 경우
   archivePosts.forEach(p => {
     const date = p.date.split('T')[0];
     dataMap[date] = { date, count: (dataMap[date]?.count || 0) + 1, type: 'archive' };
   });
 
-  // 3. Blog Post (파랑) - 가장 높은 우선순위 (이 날 글을 썼다면 무조건 파란색)
   blogPosts.forEach(p => {
     const date = p.date.split('T')[0];
     dataMap[date] = { date, count: (dataMap[date]?.count || 0) + 1, type: 'blog' };
