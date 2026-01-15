@@ -14,6 +14,7 @@ export interface PostData {
   category: string;
   content: string;
   isLearning?: boolean;
+  type?: "blog" | "archive";
 }
 
 // 1. 이미지를 중앙 리포지토리(knowledge-database)의 Raw URL로 변환
@@ -26,7 +27,9 @@ function fixImagePaths(content: string, category: string, fileName: string) {
   return content.replace(
     /!\[(.*?)\]\((?!http)(.*?)\)/g,
     (match, alt, imgPath) => {
-      const cleanImgPath = imgPath.startsWith("./") ? imgPath.substring(2) : imgPath;
+      const cleanImgPath = imgPath.startsWith("./")
+        ? imgPath.substring(2)
+        : imgPath;
       return `![${alt}](${baseUrl}/${cleanImgPath})`;
     }
   );
@@ -41,11 +44,11 @@ export function getSortedPostsData(): PostData[] {
 
   categories.forEach((category) => {
     const categoryPath = path.join(postsDirectory, category);
-    
+
     // 디렉토리인 경우에만 내부 md 파일들을 읽습니다.
     if (fs.statSync(categoryPath).isDirectory()) {
       const fileNames = fs.readdirSync(categoryPath);
-      
+
       fileNames.forEach((fileName) => {
         if (fileName.endsWith(".md")) {
           const id = `${category}/${fileName.replace(/\.md$/, "")}`;
@@ -82,7 +85,8 @@ export function getPostDataWithNav(id: string) {
   if (postIndex === -1) return null;
 
   const post = allPosts[postIndex];
-  const prevPost = postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
+  const prevPost =
+    postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
   const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
 
   return {
@@ -97,14 +101,14 @@ export function getPostsByCategory() {
   const categories: Record<string, any> = {};
 
   allPosts.forEach((post) => {
-    const category = post.category || 'General';
+    const category = post.category || "General";
     if (!categories[category]) {
       categories[category] = {
         posts: [],
         startDate: post.date,
         endDate: post.date,
         durationMonths: 0,
-        isLearning: false
+        isLearning: false,
       };
     }
 
@@ -121,11 +125,13 @@ export function getPostsByCategory() {
   const now = new Date();
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  Object.keys(categories).forEach(name => {
+  Object.keys(categories).forEach((name) => {
     const cat = categories[name];
     const start = new Date(cat.startDate);
     const end = new Date(cat.endDate);
-    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    const months =
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      (end.getMonth() - start.getMonth());
     cat.durationMonths = months <= 0 ? 1 : months + 1;
     cat.isLearning = end >= oneWeekAgo;
   });
@@ -140,13 +146,13 @@ export function getCombinedHeatmapData() {
   const dataMap: Record<string, any> = {};
 
   allArchive.forEach((post) => {
-    const date = post.date.split('T')[0];
+    const date = post.date.split("T")[0];
     if (!dataMap[date]) dataMap[date] = { date, archiveCount: 0, blogCount: 0 };
     dataMap[date].archiveCount += 1;
   });
 
   allBlog.forEach((post) => {
-    const date = post.date.split('T')[0];
+    const date = post.date.split("T")[0];
     if (!dataMap[date]) dataMap[date] = { date, archiveCount: 0, blogCount: 0 };
     dataMap[date].blogCount += 1;
   });
@@ -161,17 +167,25 @@ export async function getFinalHeatmapData() {
   const dataMap: Record<string, any> = {};
 
   Object.entries(githubCommits).forEach(([date, count]) => {
-    dataMap[date] = { date, count: count as number, type: 'commit' };
+    dataMap[date] = { date, count: count as number, type: "commit" };
   });
 
-  archivePosts.forEach(p => {
-    const date = p.date.split('T')[0];
-    dataMap[date] = { date, count: (dataMap[date]?.count || 0) + 1, type: 'archive' };
+  archivePosts.forEach((p) => {
+    const date = p.date.split("T")[0];
+    dataMap[date] = {
+      date,
+      count: (dataMap[date]?.count || 0) + 1,
+      type: "archive",
+    };
   });
 
-  blogPosts.forEach(p => {
-    const date = p.date.split('T')[0];
-    dataMap[date] = { date, count: (dataMap[date]?.count || 0) + 1, type: 'blog' };
+  blogPosts.forEach((p) => {
+    const date = p.date.split("T")[0];
+    dataMap[date] = {
+      date,
+      count: (dataMap[date]?.count || 0) + 1,
+      type: "blog",
+    };
   });
 
   return Object.values(dataMap);
