@@ -80,17 +80,27 @@ export function getSortedPostsData(): PostData[] {
 
 export function getPostDataWithNav(id: string) {
   const allPosts = getSortedPostsData();
-  const postIndex = allPosts.findIndex((p) => p.id === id);
 
-  if (postIndex === -1) return null;
+  // 1. 현재 포스트를 먼저 찾습니다.
+  const currentPost = allPosts.find((p) => p.id === id);
+  if (!currentPost) return null;
 
-  const post = allPosts[postIndex];
+  // 2. 현재 포스트와 '같은 카테고리'에 있는 글들만 필터링합니다.
+  const categoryPosts = allPosts.filter(
+    (p) => p.category === currentPost.category
+  );
+
+  // 3. 같은 카테고리 내에서 현재 글의 위치(index)를 찾습니다.
+  const postIndex = categoryPosts.findIndex((p) => p.id === id);
+
+  // 4. 같은 카테고리 배열 안에서만 앞뒤를 결정합니다.
+  // 최신순 정렬이므로 index + 1이 과거글(이전), index - 1이 최신글(다음)입니다.
   const prevPost =
-    postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null;
-  const nextPost = postIndex > 0 ? allPosts[postIndex - 1] : null;
+    postIndex < categoryPosts.length - 1 ? categoryPosts[postIndex + 1] : null;
+  const nextPost = postIndex > 0 ? categoryPosts[postIndex - 1] : null;
 
   return {
-    post,
+    post: currentPost, // 전체 데이터를 반환
     prevPost: prevPost ? { id: prevPost.id, title: prevPost.title } : null,
     nextPost: nextPost ? { id: nextPost.id, title: nextPost.title } : null,
   };

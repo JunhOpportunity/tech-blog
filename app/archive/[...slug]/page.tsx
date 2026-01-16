@@ -7,6 +7,7 @@ import "highlight.js/styles/github-dark.css";
 import TableOfContents from "@/components/TableOfContents";
 import Link from "next/link";
 import CodeBlock from "@/components/CodeBlock";
+import rehypeRaw from "rehype-raw";
 
 export async function generateStaticParams() {
   const posts = getSortedPostsData();
@@ -76,7 +77,7 @@ export default async function ArchivePostPage({
         <div className="prose prose-slate dark:prose-invert max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeHighlight, rehypeSlug]}
+            rehypePlugins={[rehypeHighlight, rehypeSlug, rehypeRaw]}
           >
             {post.content}
           </ReactMarkdown>
