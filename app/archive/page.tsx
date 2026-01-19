@@ -1,5 +1,5 @@
 // app/archive/page.tsx
-import { getPostsByCategory } from "@/app/lib/posts";
+import { getPostsByCategory, PostData } from "@/app/lib/posts";
 import Link from "next/link";
 
 export default function ArchivePage() {
@@ -75,7 +75,7 @@ export default function ArchivePage() {
               </p>
 
               <ul className="space-y-2 mb-6 flex-grow">
-                {posts.slice(0, 3).map((post) => (
+                {posts.slice(0, 3).map((post: PostData) => (
                   <li
                     key={post.id}
                     className="text-sm text-slate-600 truncate opacity-80 group-hover:opacity-100 transition-opacity"
