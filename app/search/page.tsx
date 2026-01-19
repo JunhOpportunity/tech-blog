@@ -1,11 +1,12 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react"; // 1. Suspense 추가
 import { PostData } from "@/app/lib/posts";
 import Link from "next/link";
 
-export default function SearchPage() {
+// 2. 검색 로직과 UI를 담은 별도의 컴포넌트
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const [results, setResults] = useState<PostData[]>([]);
@@ -13,30 +14,25 @@ export default function SearchPage() {
 
   const getCleanSnippet = (content: string) => {
     return content
-      .replace(/#+\s/g, "") // H1, H2 등 제목 기호 제거
-      .replace(/(\*\*|__)(.*?)\1/g, "$2") // 굵게 제거
-      .replace(/(!\[.*?\]\(.*?\))/g, "") // 이미지 링크 제거
-      .replace(/\[(.*?)\]\(.*?\)/g, "$1") // 링크 텍스트만 유지
-      .replace(/(`{1,3})(.*?)\1/g, "$2") // 코드 블록 기호 제거
-      .replace(/>\s/g, "") // 인용구 기호 제거
-      .replace(/\n+/g, " ") // 줄바꿈을 공백으로 변경
+      .replace(/#+\s/g, "")
+      .replace(/(\*\*|__)(.*?)\1/g, "$2")
+      .replace(/(!\[.*?\]\(.*?\))/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .replace(/(`{1,3})(.*?)\1/g, "$2")
+      .replace(/>\s/g, "")
+      .replace(/\n+/g, " ")
       .trim()
-      .substring(0, 160); // 160자까지만 자르기
+      .substring(0, 160);
   };
 
   const Highlight = ({ text, query }: { text: string; query: string }) => {
     if (!query.trim()) return <>{text}</>;
-
     const parts = text.split(new RegExp(`(${query})`, "gi"));
-
     return (
       <>
         {parts.map((part, i) =>
           part.toLowerCase() === query.toLowerCase() ? (
-            <mark
-              key={i}
-              className="bg-yellow-200 text-slate-900 rounded-sm px-0.5"
-            >
+            <mark key={i} className="bg-yellow-200 text-slate-900 rounded-sm px-0.5">
               {part}
             </mark>
           ) : (
@@ -50,7 +46,6 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
-      // 검색 로직을 처리할 API 호출
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setResults(data);
@@ -73,26 +68,16 @@ export default function SearchPage() {
           {results.map((post) => (
             <Link
               key={`${post.type}-${post.id}`}
-              href={
-                post.type === "blog"
-                  ? `/blog/${post.id}`
-                  : `/archive/${post.id}`
-              }
+              href={post.type === "blog" ? `/blog/${post.id}` : `/archive/${post.id}`}
               className="block p-6 border rounded-xl hover:border-blue-500 transition-colors bg-white shadow-sm mb-4"
             >
               <div className="flex items-center gap-2 mb-1">
-                <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    post.type === "blog"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-orange-100 text-orange-600"
-                  }`}
-                >
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                  post.type === "blog" ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600"
+                }`}>
                   {post.type}
                 </span>
-                <span className="text-sm text-slate-400 font-medium">
-                  {post.category}
-                </span>
+                <span className="text-sm text-slate-400 font-medium">{post.category}</span>
               </div>
 
               <h2 className="text-xl font-bold mt-1">
@@ -106,10 +91,17 @@ export default function SearchPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10 text-slate-500">
-          검색 결과가 없습니다.
-        </div>
+        <div className="text-center py-10 text-slate-500">검색 결과가 없습니다.</div>
       )}
     </div>
+  );
+}
+
+// 3. 실제 export되는 페이지 컴포넌트 (Suspense 바운더리 설정)
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20">검색 페이지 로딩 중...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
