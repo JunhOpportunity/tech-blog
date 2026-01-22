@@ -10,11 +10,13 @@ export interface PostData {
   id: string;
   title: string;
   date: string;
-  created_at: string;
+  created_at?: string;
   category: string;
   content: string;
   isLearning?: boolean;
   type?: "blog" | "archive";
+  thumbnail?: string;
+  description?: string;
 }
 
 // 1. 이미지를 중앙 리포지토리(knowledge-database)의 Raw URL로 변환

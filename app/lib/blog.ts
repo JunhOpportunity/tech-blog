@@ -21,7 +21,9 @@ function extractFirstImage(content: string): string | null {
 
 function extractSummary(content: string, description?: string): string {
   // 1. 메타데이터에 설명이 있으면 우선 사용
-  if (description) return description;
+  if (description && description.trim() !== "") {
+    return description;
+  }
 
   // 2. 없으면 본문에서 마크다운 문법(이미지, 링크 등)을 제거하고 순수 텍스트만 추출
   const plainText = content
