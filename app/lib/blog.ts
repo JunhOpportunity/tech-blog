@@ -8,35 +8,30 @@ const blogDirectory = path.join(process.cwd(), "content/blog");
  * 마크다운 본문에서 첫 번째 이미지 URL을 추출하는 함수
  */
 function extractFirstImage(content: string): string | null {
-  // 마크다운 이미지 패턴: ![alt](url) 또는 HTML 이미지 패턴: <img src="url" ...>
   const imgRegex = /!\[.*?\]\((.*?)\)|<img.*?src=["'](.*?)["'].*?>/i;
   const match = content.match(imgRegex);
-
-  if (match) {
-    // match[1]은 마크다운 패턴 URL, match[2]는 HTML 패턴 URL
-    return match[1] || match[2] || null;
-  }
-  return null;
+  return match ? (match[1] || match[2] || null) : null;
 }
 
+/**
+ * 요약문 추출 함수
+ */
 function extractSummary(content: string, description?: string): string {
-  // 1. 메타데이터에 설명이 있으면 우선 사용
-  if (description && description.trim() !== "") {
-    return description;
-  }
+  if (description && description.trim() !== "") return description;
 
-  // 2. 없으면 본문에서 마크다운 문법(이미지, 링크 등)을 제거하고 순수 텍스트만 추출
   const plainText = content
-    .replace(/[#*`~]/g, "") // 특수문자 제거
-    .replace(/!\[.*\]\(.*\)/g, "") // 이미지 제거
-    .replace(/\[.*\]\(.*\)/g, "") // 링크 제거
-    .replace(/\n+/g, " ") // 줄바꿈을 공백으로
+    .replace(/[#*`~]/g, "") 
+    .replace(/!\[.*\]\(.*\)/g, "") 
+    .replace(/\[.*\]\(.*\)/g, "") 
+    .replace(/\n+/g, " ") 
     .trim();
 
-  // 3. 앞부분 120자만 잘라서 반환
   return plainText.slice(0, 150) + (plainText.length > 150 ? "..." : "");
 }
 
+/**
+ * 1. 전체 블로그 포스트 가져오기 (시리즈 정보 포함)
+ */
 export function getBlogPosts() {
   if (!fs.existsSync(blogDirectory)) return [];
 
@@ -57,12 +52,12 @@ export function getBlogPosts() {
       return {
         id,
         title: data.title || id,
-        // 날짜가 문자열이 아닌 Date 객체로 올 수 있어 처리 추가
         date: data.date
           ? new Date(data.date).toISOString()
           : new Date().toISOString(),
         description: summary,
         category: data.category || "General",
+        series: data.series || null, // 시리즈 메타데이터 추가
         thumbnail: firstImage || "",
         content,
       };
@@ -71,7 +66,40 @@ export function getBlogPosts() {
 }
 
 /**
- * 단일 포스트를 가져올 때도 동일하게 적용하기 위한 함수 (필요 시 활용)
+ * 2. 시리즈별로 그룹화된 데이터 가져오기
+ */
+export function getSeriesPosts() {
+  const allPosts = getBlogPosts();
+  const seriesMap: { [key: string]: any[] } = {};
+
+  // 시리즈명이 있는 글들만 그룹화
+  allPosts.forEach((post) => {
+    if (post.series) {
+      if (!seriesMap[post.series]) {
+        seriesMap[post.series] = [];
+      }
+      seriesMap[post.series].push(post);
+    }
+  });
+
+  // 그룹화된 데이터를 배열 형태로 변환
+  return Object.keys(seriesMap).map((seriesName) => {
+    const posts = seriesMap[seriesName];
+    // 이미 getBlogPosts에서 정렬되어 있지만, 안전하게 다시 최신순 정렬
+    const sortedPosts = posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return {
+      name: seriesName,
+      posts: sortedPosts,
+      count: sortedPosts.length,
+      lastUpdated: sortedPosts[0].date,
+      thumbnail: sortedPosts[0].thumbnail || "", // 가장 최신글의 썸네일을 시리즈 커버로 사용
+    };
+  });
+}
+
+/**
+ * 3. 단일 포스트 데이터 가져오기
  */
 export function getBlogPostData(id: string) {
   const fullPath = path.join(blogDirectory, `${id}.md`);
@@ -79,14 +107,25 @@ export function getBlogPostData(id: string) {
 
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
+  
   const firstImage = extractFirstImage(content);
+  const summary = extractSummary(content, data.description);
 
   return {
     id,
     title: data.title || id,
-    date: data.date || new Date().toISOString(),
+    date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+    description: summary,
+    category: data.category || "General",
+    series: data.series || null,
     thumbnail: firstImage || "",
-    ...data,
     content,
   };
+}
+
+export function getPostsBySeries(seriesName: string) {
+  const allPosts = getBlogPosts();
+  return allPosts
+    .filter((post) => post.series === seriesName)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
