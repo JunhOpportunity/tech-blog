@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import TableOfContents from "@/components/TableOfContents";
 import rehypeSlug from "rehype-slug";
+import rehypeRaw from "rehype-raw";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -44,7 +45,7 @@ export default async function BlogPostPage({
       <div className="prose prose-slate dark:prose-invert max-w-none">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHighlight, rehypeSlug]}
+          rehypePlugins={[rehypeHighlight, rehypeSlug, rehypeRaw]}
         >
           {post.content}
         </ReactMarkdown>
