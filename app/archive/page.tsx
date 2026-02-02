@@ -40,7 +40,7 @@ export default function ArchivePage() {
               className="relative border rounded-xl p-6 bg-white hover:border-blue-500 transition-all shadow-sm flex flex-col h-full group"
             >
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">
+                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight uppercase">
                   {name}
                 </h2>
 
@@ -78,7 +78,7 @@ export default function ArchivePage() {
                 {posts.slice(0, 3).map((post: PostData) => (
                   <li
                     key={post.id}
-                    className="text-sm text-slate-600 truncate opacity-80 group-hover:opacity-100 transition-opacity"
+                    className="text-sm text-slate-600 truncate opacity-80 group-hover:opacity-100 transition-opacity "
                   >
                     • {post.title}
                   </li>
