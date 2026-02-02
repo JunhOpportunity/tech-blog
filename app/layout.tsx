@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import "./globals.css";
+import ScrollToTop from "@/components/ScrollTop";
 
 export function SearchInput() {
   const [value, setValue] = useState('');
@@ -94,6 +95,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="bg-slate-50 text-slate-900 font-sans antialiased">
+      <ScrollToTop />
         <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-slate-200/60">
           <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 group">
