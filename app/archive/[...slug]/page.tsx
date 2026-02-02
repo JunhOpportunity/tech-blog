@@ -64,7 +64,6 @@ export default async function ArchivePostPage({
           </h1>
 
           <time className="text-slate-400 text-sm font-mono uppercase">
-            Updated:{" "}
             {new Date(post.date).toLocaleDateString("ko-KR", {
               year: "numeric",
               month: "long",
