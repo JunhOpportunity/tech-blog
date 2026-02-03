@@ -6,6 +6,32 @@ import "highlight.js/styles/github-dark.css";
 import TableOfContents from "@/components/TableOfContents";
 import rehypeSlug from "rehype-slug";
 import rehypeRaw from "rehype-raw";
+import { Metadata } from "next";
+import { getBlogPostData } from "@/app/lib/blog";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const decodedId = decodeURIComponent(id);
+  const post = await getBlogPostData(decodedId);
+
+  if (!post) return { title: "Post Not Found" };
+
+  return {
+    title: post.title, // layout.tsx의 template 덕분에 자동으로 '제목 | Junho's Dev Log'가 됩니다.
+    description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: "article",
+      publishedTime: post.date,
+      images: [
+        {
+          url: post.thumbnail || "/og-image.png", // 글에 썸네일이 있으면 사용, 없으면 기본 이미지
+        },
+      ],
+    },
+  };
+}
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
