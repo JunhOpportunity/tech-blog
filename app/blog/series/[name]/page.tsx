@@ -1,9 +1,20 @@
 import { getPostsBySeries } from "@/app/lib/blog";
 import PostCard from "@/components/PostCard";
+import { Metadata } from "next";
 import Link from "next/link";
 
 // 1. 함수 앞에 async를 붙입니다.
 // 2. params의 타입을 Promise로 정의합니다.
+export async function generateMetadata({ params }: { params: Promise<{ name: string }> }): Promise<Metadata> {
+  const { name } = await params;
+  const seriesName = decodeURIComponent(name);
+
+  return {
+    title: `${seriesName} 시리즈`,
+    description: `${seriesName}에 관한 연재 게시글 모음입니다.`,
+  };
+}
+
 export default async function SeriesDetailPage({ 
   params 
 }: { 
