@@ -37,10 +37,10 @@ export default function ArchivePage() {
           return (
             <div
               key={name}
-              className="relative border rounded-xl p-6 bg-white hover:border-blue-500 transition-all shadow-sm flex flex-col h-full group"
+              className="relative border rounded-xl p-6 bg-white transition-all hover:-translate-y-2 duration-300 hover:shadow-blue-200 transition-all shadow-xl border border-slate-100 flex flex-col h-full group"
             >
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight uppercase">
+                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight uppercase truncate block">
                   {name}
                 </h2>
 

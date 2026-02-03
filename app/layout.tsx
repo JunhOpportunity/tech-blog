@@ -54,7 +54,7 @@ export default function RootLayout({
         <main className="max-w-5xl mx-auto px-6 py-12 min-h-screen">
           {children}
         </main>
-        <footer className="mt-24 border-t border-slate-100 bg-white/50">
+        <footer className="mt-8 border-t border-slate-100 bg-white/50">
           <div className="max-w-5xl mx-auto px-6 py-16">
             <div className="flex flex-col md:flex-row justify-between items-start gap-12">
               <div className="space-y-4 max-w-sm">

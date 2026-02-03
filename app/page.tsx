@@ -56,12 +56,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section>
+      {/* <section>
         <h2 className="text-2xl font-bold mb-4">Activity</h2>
         <div className="bg-white border rounded-2xl p-6 shadow-sm">
           <ActivityHeatmap data={heatmapData} />
         </div>
-      </section>
+      </section> */}
 
       <section className="grid md:grid-cols-2 gap-16">
         {/* --- 1. 최근 블로그 포스트 (정제된 글) --- */}

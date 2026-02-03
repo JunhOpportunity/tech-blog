@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PostData } from "@/app/lib/posts";
+import Image from "next/image";
 
 export default function PostCard({ post }: { post: PostData }) {
   const formatDate = (dateString: string) => {
@@ -13,13 +14,15 @@ export default function PostCard({ post }: { post: PostData }) {
   return (
     <Link href={`/blog/${post.id}`} className="group">
       <div className="flex flex-col h-full bg-white rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-xl shadow-md border border-slate-100">
-        {/* 1. 썸네일 영역 (이미지가 없을 경우 대비) */}
         <div className="relative w-full aspect-video bg-slate-100 overflow-hidden">
           {post.thumbnail ? (
-            <img
+            <Image
               src={post.thumbnail}
               alt={post.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              fill 
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              priority={false}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold text-xl bg-gradient-to-br from-slate-50 to-slate-200">
@@ -35,7 +38,7 @@ export default function PostCard({ post }: { post: PostData }) {
             {post.title}
           </h2>
           <p className="text-sm text-slate-500 line-clamp-3 mb-5 flex-1 leading-relaxed">
-          {post.description || post.content.replace(/[#*`]/g, "")}
+            {post.description || post.content.replace(/[#*`]/g, "")}
           </p>
           <div className="text-[12px] font-medium text-slate-400 mt-auto">
             {formatDate(post.date)}
