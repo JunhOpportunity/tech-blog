@@ -5,6 +5,7 @@ import ActivityHeatmap from "@/components/ActivityHeatmap";
 import { Github, Mail } from "lucide-react";
 import FeaturedSeriesCard from "@/components/home/FeaturedSeriesCard";
 import QuickStats from "@/components/home/QuickStats";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export default function HomePage() {
   const latestBlog = getBlogPosts().slice(0, 2);
@@ -58,95 +59,103 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid md:grid-cols-2 gap-16">
-        {/* --- 1. 최근 블로그 포스트 (정제된 글) --- */}
-        <div>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              Recent Posts
-            </h2>
-            <Link
-              href="/blog"
-              className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
-            >
-              전체보기
-            </Link>
+      <ScrollReveal>
+        <section className="grid md:grid-cols-2 gap-16">
+          {/* --- 1. 최근 블로그 포스트 (정제된 글) --- */}
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                Recent Posts
+              </h2>
+              <Link
+                href="/blog"
+                className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
+              >
+                전체보기
+              </Link>
+            </div>
+
+            <div className="space-y-8">
+              {latestBlog.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.id}`}
+                  className="group block"
+                >
+                  <article className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                        {post.category}
+                      </span>
+                      <time className="text-xs text-slate-400">
+                        {new Date(post.date).toLocaleDateString("ko-KR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </time>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                      {post.description}
+                    </p>
+                  </article>
+                </Link>
+              ))}
+            </div>
           </div>
 
-          <div className="space-y-8">
-            {latestBlog.map((post) => (
+          {/* --- 2. 최근 아카이브 기록 (날것의 기록) --- */}
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                Latest Archive
+              </h2>
               <Link
-                key={post.id}
-                href={`/blog/${post.id}`}
-                className="group block"
+                href="/archive"
+                className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
               >
-                <article className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                      {post.category}
+                전체보기
+              </Link>
+            </div>
+
+            <div className="space-y-1">
+              {latestArchive.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/archive/${encodeURIComponent(post.id)}`}
+                  className="group flex items-center justify-between py-3 border-b border-slate-100 last:border-0"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <span className="text-slate-300 group-hover:text-blue-400 transition-colors text-xs font-mono">
+                      #
                     </span>
-                    <time className="text-xs text-slate-400">
-                      {new Date(post.date).toLocaleDateString("ko-KR", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </time>
+                    <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors truncate">
+                      {post.title}
+                    </span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">
-                    {post.title}
-                  </h3>
-                  <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-                    {post.description}
-                  </p>
-                </article>
-              </Link>
-            ))}
+                  <time className="text-[11px] font-mono text-slate-400 shrink-0 ml-4 uppercase">
+                    {new Date(post.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </time>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
+      </ScrollReveal>
 
-        {/* --- 2. 최근 아카이브 기록 (날것의 기록) --- */}
-        <div>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              Latest Archive
-            </h2>
-            <Link
-              href="/archive"
-              className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
-            >
-              전체보기
-            </Link>
-          </div>
+      <ScrollReveal>
+        <QuickStats />
+      </ScrollReveal>
 
-          <div className="space-y-1">
-            {latestArchive.map((post) => (
-              <Link
-                key={post.id}
-                href={`/archive/${encodeURIComponent(post.id)}`}
-                className="group flex items-center justify-between py-3 border-b border-slate-100 last:border-0"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <span className="text-slate-300 group-hover:text-blue-400 transition-colors text-xs font-mono">
-                    #
-                  </span>
-                  <span className="text-sm font-medium text-slate-600 group-hover:text-slate-900 transition-colors truncate">
-                    {post.title}
-                  </span>
-                </div>
-                <time className="text-[11px] font-mono text-slate-400 shrink-0 ml-4 uppercase">
-                  {new Date(post.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </time>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-      <QuickStats />
-      <FeaturedSeriesCard />
+      <ScrollReveal>
+        <FeaturedSeriesCard />
+      </ScrollReveal>
     </div>
   );
 }
