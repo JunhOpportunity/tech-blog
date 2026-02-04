@@ -39,6 +39,12 @@ export const metadata: Metadata = {
     description: "주니어 개발자 Junho의 성장 기록",
     images: ["/og-image.png"],
   },
+  icons:{
+
+    icon: "/icon.png",
+    shortcut: "/icon-16x16.png",
+    apple: "/icon.png",
+  }
 };
 
 export default function RootLayout({

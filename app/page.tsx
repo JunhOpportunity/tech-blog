@@ -3,6 +3,8 @@ import { getCombinedHeatmapData, getSortedPostsData } from "@/app/lib/posts";
 import Link from "next/link";
 import ActivityHeatmap from "@/components/ActivityHeatmap";
 import { Github, Mail } from "lucide-react";
+import FeaturedSeriesCard from "@/components/home/FeaturedSeriesCard";
+import QuickStats from "@/components/home/QuickStats";
 
 export default function HomePage() {
   const latestBlog = getBlogPosts().slice(0, 2);
@@ -14,7 +16,7 @@ export default function HomePage() {
       <section className="pt-12 pb-4">
         <div className="max-w-3xl">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
-            기록하며 성장하는 개발자, <br />
+            프론트앤드 개발자 <br />
             <span className="text-blue-600">김준호</span>입니다.
           </h1>
 
@@ -55,13 +57,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* <section>
-        <h2 className="text-2xl font-bold mb-4">Activity</h2>
-        <div className="bg-white border rounded-2xl p-6 shadow-sm">
-          <ActivityHeatmap data={heatmapData} />
-        </div>
-      </section> */}
 
       <section className="grid md:grid-cols-2 gap-16">
         {/* --- 1. 최근 블로그 포스트 (정제된 글) --- */}
@@ -150,6 +145,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <QuickStats />
+      <FeaturedSeriesCard />
     </div>
   );
 }
