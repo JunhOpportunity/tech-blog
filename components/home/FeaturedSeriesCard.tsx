@@ -27,7 +27,7 @@ export default function FeaturedSeriesCard() {
             </p>
 
             <Link
-              href="/blog?tab=series"
+              href="/blog/series/디자인패턴"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-slate-900 rounded-2xl font-bold text-sm hover:bg-blue-50 transition-all hover:scale-105 active:scale-95"
             >
               시리즈 구경하러 가기
